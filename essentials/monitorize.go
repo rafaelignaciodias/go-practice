@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 )
+
+const monitoring = 3
+const delay = 5
 
 func main() {
 	showGreeting()
@@ -26,7 +30,6 @@ func main() {
 			os.Exit(-1)
 		}
 	}
-
 }
 
 // Displays a greeting message to the user
@@ -35,7 +38,7 @@ func showGreeting() {
 	version := 1.1
 
 	fmt.Printf("Hi, %s!\n", name)
-	fmt.Printf("This program is version %.1f\n", version)
+	fmt.Printf("This program is version %.1f\n\n", version)
 }
 
 // Displays the program menu
@@ -50,15 +53,34 @@ func getOption() int {
 	var command int
 	fmt.Print("Enter your choice: ")
 	fmt.Scan(&command)
+	fmt.Println()
 
 	return command
 }
 
-// Monitores the website list using the HTTP protocol
+// Monitors the website list using the HTTP protocol
 func startMonitoring() {
-	site := "https://httpbin.org/status/404"
+	fmt.Println("Monitoring")
+	sites := []string{
+		"https://httpbin.org/status/404",
+		"https://httpbin.org/status/200",
+		"https://httpbin.org/status/500",
+		"https://httpbin.org/status/200",
+	}
+
+	for i := 0; i < monitoring; i++ {
+		for _, site := range sites {
+			testSite(site)
+		}
+		time.Sleep(delay * time.Second)
+		fmt.Println()
+	}
+
+}
+
+func testSite(site string) {
 	resp, _ := http.Get(site)
-	
+
 	if resp.StatusCode == 200 {
 		fmt.Println("Site:", site, "has loaded successfully.")
 	} else {
