@@ -2,27 +2,31 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 )
 
 func main() {
 	showGreeting()
-	showMenu()
 
-	command := getOption()
+	for {
+		showMenu()
+		command := getOption()
 
-	switch command {
-	case 1:
-		fmt.Println("Monitoring...")
-	case 2:
-		fmt.Println("Showing logs...")
-	case 3:
-		fmt.Println("Exiting...")
-		os.Exit(0)
-	default:
-		fmt.Println("Invalid option.")
-		os.Exit(-1)
+		switch command {
+		case 1:
+			startMonitoring()
+		case 2:
+			startMonitoring()
+		case 3:
+			fmt.Println("Exiting...")
+			os.Exit(0)
+		default:
+			fmt.Println("Invalid option.")
+			os.Exit(-1)
+		}
 	}
+
 }
 
 // Displays a greeting message to the user
@@ -48,4 +52,16 @@ func getOption() int {
 	fmt.Scan(&command)
 
 	return command
+}
+
+// Monitores the website list using the HTTP protocol
+func startMonitoring() {
+	site := "https://httpbin.org/status/404"
+	resp, _ := http.Get(site)
+	
+	if resp.StatusCode == 200 {
+		fmt.Println("Site:", site, "has loaded successfully.")
+	} else {
+		fmt.Println("Site:", site, "has not loaded successfully. Status Code:", resp.StatusCode)
+	}
 }
