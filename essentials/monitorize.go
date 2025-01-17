@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -61,12 +64,15 @@ func getOption() int {
 // Monitors the website list using the HTTP protocol
 func startMonitoring() {
 	fmt.Println("Monitoring")
-	sites := []string{
-		"https://httpbin.org/status/404",
-		"https://httpbin.org/status/200",
-		"https://httpbin.org/status/500",
-		"https://httpbin.org/status/200",
-	}
+
+	// sites := []string{
+	// 	"https://httpbin.org/status/404",
+	// 	"https://httpbin.org/status/200",
+	// 	"https://httpbin.org/status/500",
+	// 	"https://httpbin.org/status/200",
+	// }
+
+	sites := getSiteList()
 
 	for i := 0; i < monitoring; i++ {
 		for _, site := range sites {
@@ -75,15 +81,42 @@ func startMonitoring() {
 		time.Sleep(delay * time.Second)
 		fmt.Println()
 	}
-
 }
 
+// Tests a single website's status
 func testSite(site string) {
-	resp, _ := http.Get(site)
+	resp, err := http.Get(site)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	if resp.StatusCode == 200 {
 		fmt.Println("Site:", site, "has loaded successfully.")
 	} else {
 		fmt.Println("Site:", site, "has not loaded successfully. Status Code:", resp.StatusCode)
 	}
+}
+
+// Reads and returns a list of websites from a file
+func getSiteList() []string {
+	var sites []string
+	file, err := os.Open("sites.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	reader := bufio.NewReader(file)
+
+	for {
+		row, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		row = strings.TrimSpace(row)
+		sites = append(sites, row)
+	}
+	file.Close()
+
+	return sites
 }
