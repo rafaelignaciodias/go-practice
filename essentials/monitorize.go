@@ -6,12 +6,14 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 const monitoring = 3
 const delay = 5
+const DateTime = "2006-01-02 15:04:05"
 
 func main() {
 	showGreeting()
@@ -24,7 +26,7 @@ func main() {
 		case 1:
 			startMonitoring()
 		case 2:
-			startMonitoring()
+			showLogs()
 		case 3:
 			fmt.Println("Exiting...")
 			os.Exit(0)
@@ -93,8 +95,10 @@ func testSite(site string) {
 
 	if resp.StatusCode == 200 {
 		fmt.Println("Site:", site, "has loaded successfully.")
+		writeSiteLog(site, true)
 	} else {
 		fmt.Println("Site:", site, "has not loaded successfully. Status Code:", resp.StatusCode)
+		writeSiteLog(site, false)
 	}
 }
 
@@ -103,7 +107,7 @@ func getSiteList() []string {
 	var sites []string
 	file, err := os.Open("sites.txt")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Failed to open file: %v", err)
 	}
 
 	reader := bufio.NewReader(file)
@@ -116,7 +120,30 @@ func getSiteList() []string {
 		row = strings.TrimSpace(row)
 		sites = append(sites, row)
 	}
-	file.Close()
+	defer file.Close()
 
 	return sites
+}
+
+// Writes the log for a site's status
+func writeSiteLog(site string, status bool) {
+	file, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("Failed to open file: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	file.WriteString(time.Now().Format(DateTime) + " - " + site + " - online: " + strconv.FormatBool(status) + "\n")
+}
+
+// Displays the log file content
+func showLogs() {
+	file, err := os.ReadFile("logs.txt")
+	if err != nil {
+		fmt.Printf("Failed to read file: %v\n", err)
+		return
+	}
+
+	fmt.Println(string(file))
 }
