@@ -1,3 +1,11 @@
+/*
+Website Monitoring Program
+
+This program monitors a list of websites by checking their availability via HTTP requests.
+It logs the status of each site (online/offline) to a file and allows users to view the logs
+or exit the program through a simple menu interface.
+*/
+
 package main
 
 import (
@@ -11,9 +19,21 @@ import (
 	"time"
 )
 
-const monitoring = 3
-const delay = 5
+// Monitoring defines the number of monitoring cycles
+const Monitoring = 3
+
+// Delay defines the delay in seconds between monitoring cycles
+const Delay = 5
+
+// DateTimeFormat defines the format for date and time representation
 const DateTime = "2006-01-02 15:04:05"
+
+// Command options
+const (
+	CommandMonitor = 1
+	CommandLogs    = 2
+	CommandExit    = 3
+)
 
 func main() {
 	showGreeting()
@@ -23,11 +43,11 @@ func main() {
 		command := getOption()
 
 		switch command {
-		case 1:
+		case CommandMonitor:
 			startMonitoring()
-		case 2:
+		case CommandLogs:
 			showLogs()
-		case 3:
+		case CommandExit:
 			fmt.Println("Exiting...")
 			os.Exit(0)
 		default:
@@ -65,24 +85,22 @@ func getOption() int {
 
 // Monitors the website list using the HTTP protocol
 func startMonitoring() {
-	fmt.Println("Monitoring")
-
-	// sites := []string{
-	// 	"https://httpbin.org/status/404",
-	// 	"https://httpbin.org/status/200",
-	// 	"https://httpbin.org/status/500",
-	// 	"https://httpbin.org/status/200",
-	// }
+	fmt.Println("Starting monitoring...")
 
 	sites := getSiteList()
+	if len(sites) == 0 {
+		fmt.Println("No sites to monitor. Exiting monitoring.")
+		return
+	}
 
-	for i := 0; i < monitoring; i++ {
+	for i := 0; i < Monitoring; i++ {
 		for _, site := range sites {
 			testSite(site)
 		}
-		time.Sleep(delay * time.Second)
+		time.Sleep(Delay * time.Second)
 		fmt.Println()
 	}
+	fmt.Println("Monitoring complete.")
 }
 
 // Tests a single website's status
@@ -90,25 +108,25 @@ func testSite(site string) {
 	resp, err := http.Get(site)
 
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error accessing site %s: %v\n", site, err)
 	}
 
 	if resp.StatusCode == 200 {
-		fmt.Println("Site:", site, "has loaded successfully.")
+		fmt.Printf("%s is up. Status Code: %d.\n", site, resp.StatusCode)
 		writeSiteLog(site, true)
 	} else {
-		fmt.Println("Site:", site, "has not loaded successfully. Status Code:", resp.StatusCode)
+		fmt.Printf("%s is down. Status Code: %d.\n", site, resp.StatusCode)
 		writeSiteLog(site, false)
 	}
 }
 
 // Reads and returns a list of websites from a file
 func getSiteList() []string {
-	var sites []string
 	file, err := os.Open("sites.txt")
 	if err != nil {
-		fmt.Printf("Failed to open file: %v", err)
+		fmt.Printf("Failed to open file: %v\n", err)
 	}
+	var sites []string
 
 	reader := bufio.NewReader(file)
 
@@ -129,7 +147,7 @@ func getSiteList() []string {
 func writeSiteLog(site string, status bool) {
 	file, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		fmt.Printf("Failed to open file: %v\n", err)
+		fmt.Printf("Failed to open log file: %v\n", err)
 		return
 	}
 	defer file.Close()
@@ -144,6 +162,7 @@ func showLogs() {
 		fmt.Printf("Failed to read file: %v\n", err)
 		return
 	}
+	fmt.Println("Showing log...")
 
 	fmt.Println(string(file))
 }
