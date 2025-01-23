@@ -9,11 +9,21 @@ type CheckingAccount struct {
 	balance      float64
 }
 
-func main() {
+func (c *CheckingAccount) withdraw(withdrawValue float64) string {
+	validWithdraw := withdrawValue > 0 && withdrawValue <= c.balance
 
-	regularCA := CheckingAccount{123, 456, "Regular Customer", 123.45}
+	if validWithdraw {
+		c.balance -= withdrawValue
+		return "Withdraw successful"
+	} else {
+		return "Withdraw not allowed"
+	}
+}
+
+func main() {
+	regularCA := CheckingAccount{123, 456, "Regular Customer", 123.}
 	fmt.Println(regularCA)
 
-	regularIA := CheckingAccount{agency: 321, account: 654, customerName: "Investidor Customer", balance: 543.21}
-	fmt.Println(regularIA)
+	fmt.Println(regularCA.withdraw(1000.0))
+	fmt.Println(regularCA)
 }
