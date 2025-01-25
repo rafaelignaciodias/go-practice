@@ -5,28 +5,28 @@ import (
 	"intermediate/accounts"
 )
 
+func PayBill(account verifyAccount, billAmount float64) {
+	account.Withdraw(billAmount)
+}
+
+type verifyAccount interface {
+	Withdraw(value float64) string
+}
+
 func main() {
-	regularCA := accounts.CheckingAccount{123, 456, "Regular Customer", 1000.}
-	fmt.Println("Creation successful")
-	fmt.Println(regularCA)
 
-	status, _ := regularCA.Deposit(1000.0)
-	fmt.Println()
-	fmt.Println(status)
-	fmt.Println(regularCA)
+	checkingAccount := accounts.Checking{}
 
-	fmt.Println()
-	fmt.Println(regularCA.Withdraw(1000.0))
-	fmt.Println(regularCA)
+	checkingAccount.Deposit(100)
+	PayBill(&checkingAccount, 51)
 
-	fmt.Println()
-	investimentCA := accounts.CheckingAccount{321, 654, "Investiment Customer", 1000.}
-	fmt.Println("Creation successful")
-	fmt.Println(investimentCA)
+	fmt.Println(checkingAccount)
 
-	fmt.Println()
-	regularCA.Transfer(500., &investimentCA)
-	fmt.Println("Transfer successful")
-	fmt.Println(regularCA)
-	fmt.Println(investimentCA)
+	savingAccount := accounts.Saving{}
+
+	savingAccount.Deposit(1000)
+	PayBill(&savingAccount, 749)
+	savingAccount.Withdraw(99)
+
+	fmt.Println(savingAccount)
 }
